@@ -125,6 +125,9 @@ public final class MethodTimeManager {
         }
 
         MethodTimeInfo methodTimeInfo = mReadyStopCache.remove(generateKey(className, methodName, methodDescriptor));
+        if (methodTimeInfo == null) {
+            return;
+        }
         // 如果是包节点，则什么都不做
         if (!TextUtils.isEmpty(methodTimeInfo.mPackagePartName)) {
             return;

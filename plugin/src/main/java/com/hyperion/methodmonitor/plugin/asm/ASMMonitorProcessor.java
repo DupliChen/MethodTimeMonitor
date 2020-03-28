@@ -193,7 +193,7 @@ public class ASMMonitorProcessor implements IMonitorProcessor {
                 hookClickListener(visitor, file, classLoader);
             } catch (Throwable e) {
                 e.printStackTrace();
-                System.out.println("hook 发生了未知异常，跳过当前类");
+                System.out.println("hook 发生了未知异常，跳过当前文件：" + file.getAbsolutePath());
             } finally {
                 if (in != null) {
                     try {
