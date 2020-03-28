@@ -1,6 +1,6 @@
 apply plugin: 'groovy'
-apply plugin: 'maven'
-//apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'maven'
+apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.HyperionChen'
 
 tasks.withType(JavaCompile) {
@@ -22,47 +22,4 @@ dependencies {
 repositories {
     mavenCentral()
     mavenLocal()
-}
-
-def ARTIFACT_ID = 'MethodTimeMonitorPlugin'
-def VERSION_NAME = '1.0.0'
-def POM_NAME = 'Android-plugins-methodtimemonitor'
-def PACKAGE = 'aar'
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            pom.groupId = GROUP
-            pom.artifactId = ARTIFACT_ID
-            pom.version = VERSION_NAME
-            repository(url: REPO_RELEASE_REPOSITORY_URL) {
-                authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
-            }
-            snapshotRepository(url: REPO_SNAPSHOT_REPOSITORY_URL) {
-                authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
-            }
-
-            pom.project {
-                name POM_NAME
-                groupId GROUP
-                artifactId ARTIFACT_ID
-                version VERSION_NAME
-                packaging PACKAGE
-
-                developers {
-                    developer {
-                        id POM_DEVELOPER_ID
-                        name POM_DEVELOPER_NAME
-                    }
-                }
-
-                licenses {
-                    license {
-                        name POM_LICENCE_NAME
-                        url POM_LICENCE_URL
-                    }
-                }
-            }
-        }
-    }
 }
