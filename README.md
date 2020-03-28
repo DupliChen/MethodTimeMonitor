@@ -1,0 +1,2 @@
+# MethodTimeMonitor
+监听Android主线程方法耗时，并以列表的形式展示出来，支持设置指定耗时时间过滤列表数据
