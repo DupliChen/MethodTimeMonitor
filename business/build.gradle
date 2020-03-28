@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
-apply from: rootProject.file("gradle/nexusUpload.gradle")
-//apply plugin: 'maven'
+//apply from: rootProject.file("gradle/nexusUpload.gradle")
 apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.HyperionChen'
 
