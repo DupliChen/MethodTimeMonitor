@@ -1,0 +1,370 @@
+/**
+ * You can use checkNexusModuleConfig at module project for check
+ *
+ * <pre>
+ *     task clean(type: Delete) {*          checkNexusModuleConfig()
+ *          delete project.buildDir
+ *}* </pre>
+ */
+
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+def checkNexusModuleConfig() {
+    String versionName = getVersionName()
+    int versionCode = getVersionCode()
+    String groupSet = getGroupSet()
+    String pomArtifactId = getPomArtifactId()
+    String pomName = getPomName()
+    String repositoryUsername = getRepositoryUsername()
+    String repositoryPassword = getRepositoryPassword()
+    String releaseRepositoryUrl = getReleaseRepositoryUrl()
+    String snapshotRepositoryUrl = getSnapshotRepositoryUrl()
+    String pomPackaging = getPomPackaging()
+    String pomDeveloperId = getPomDeveloperId()
+    String pomDeveloperName = getPomDeveloperName()
+    String pomLicenceName = getPomLicenceName()
+    String pomLicenceUrl = getPomLicenceUrl()
+    String pomLicenceDist = getPomLicenceDist()
+    String pomDescription = getPomDescription()
+    if (
+    isStringEmpty(versionName) || versionCode == 0 || isStringEmpty(groupSet) ||
+            isStringEmpty(pomArtifactId) || isStringEmpty(pomName) ||
+            isStringEmpty(repositoryUsername) || isStringEmpty(repositoryPassword)
+    ) {
+        throw new IllegalArgumentException("checkNexusModuleConfig error, please check log!")
+    } else {
+        def sb = new StringBuffer()
+        sb.append("checkNexusModuleConfig at module [ ")
+        sb.append(project.name)
+        sb.append(" ] success!")
+        sb.append("\n\t versionName: ")
+        sb.append(versionName)
+        sb.append("\n\t versionCode: ")
+        sb.append(versionCode)
+        sb.append("\n\t group: ")
+        sb.append(groupSet)
+        sb.append("\n\t pomArtifactId: ")
+        sb.append(pomArtifactId)
+        sb.append("\n\t pomName: ")
+        sb.append(pomName)
+        sb.append("\n\t nexus_username: ")
+        sb.append(repositoryUsername)
+        if (isReleaseBuild()) {
+            sb.append("\n\t buildType: release")
+            sb.append("\n\t releaseRepositoryUrl: ")
+            sb.append(releaseRepositoryUrl)
+        } else {
+            sb.append("\n\t buildType: SNAPSHOT")
+            sb.append("\n\t snapshotRepositoryUrl: ")
+            sb.append(snapshotRepositoryUrl)
+        }
+        sb.append("\n\t pomPackaging: ")
+        sb.append(pomPackaging)
+        sb.append("\n\t pomDeveloperId: ")
+        sb.append(pomDeveloperId)
+        sb.append("\n\t pomPackaging: ")
+        sb.append(pomPackaging)
+        sb.append("\n\t pomDeveloperName: ")
+        sb.append(pomDeveloperName)
+        sb.append("\n\t pomLicenceName: ")
+        sb.append(pomLicenceName)
+        sb.append("\n\t pomLicenceUrl: ")
+        sb.append(pomLicenceUrl)
+        sb.append("\n\t pomLicenceDist: ")
+        sb.append(pomLicenceDist)
+        sb.append("\n\t pomDescription: ")
+        sb.append(pomDescription)
+        sb.append("\n")
+        print sb.toString()
+    }
+}
+
+def printErrorGradlePropertiesNotSet(tag) {
+    System.err.println String.format('Stop build by error, you are not set [ %s ] at gradle.properties, please set and retry!', tag)
+}
+
+boolean isStringEmpty(str) {
+    if (str == null) {
+        return true
+    } else {
+        if (str instanceof String) {
+            return str.equals("")
+        } else {
+            print String.format("warning this object %s, is not String!", str)
+            return true
+        }
+    }
+}
+
+/**
+ * get the last commit with tag
+ */
+String gitHeadTag() {
+    if (!isGitInit()) {
+        return ""
+    }
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'tag', '-l', '--points-at', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+boolean isGitInit() {
+    def path = rootDir.path + "/.git/"
+    if (!file(path).exists()) {
+        return false
+    }
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'branch'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim().length() > 0
+}
+
+/**
+ * @return true-if last commit is tag
+ */
+boolean isReleaseBuild() {
+    if (hasProperty("isUpdateConfigGradle")) {
+        def isUpdate = Boolean.parseBoolean(getProperty("isUpdateConfigGradle"))
+        if (isUpdate) {
+            //标记为更新脚本，都认为是snapshot版本
+            return false
+        }
+    }
+    // 降低判断等级，只要 isUpdateConfigGradle 不存在或者不为 true，则都是release模式
+//    return gitHeadTag().length() > 0
+    return true
+}
+
+/**
+ * 当前发布的是否是snapShot版本
+ * @return true-是
+ */
+boolean isSnapShot(versionName) {
+    return !isReleaseBuild() && !versionName.endsWith("-SNAPSHOT")
+}
+
+/**
+ * 是否包含用于更新本地package.gradle文件的url
+ * @return true-有
+ */
+boolean isContainGradleUpdateKey() {
+    return gradle.rootProject.properties.containsKey('PACKAGE_GRADLE_FILE')
+}
+
+String getVersionName() {
+    // 首先读取模块内的版本号
+    def versionName = project.android.defaultConfig.versionName
+    if (versionName != null) {
+        if (isSnapShot(versionName)) {
+            versionName += "-SNAPSHOT"
+        }
+        return versionName
+    }
+
+    // 读取外层配置
+    if (hasProperty('VERSION_NAME')) {
+        versionName = VERSION_NAME
+        if (isSnapShot(versionName)) {
+            //snapshot version,need add -SNAPSHOT for version name
+            versionName += "-SNAPSHOT"
+        }
+        return versionName
+    } else {
+        printErrorGradlePropertiesNotSet('VERSION_NAME')
+        return ""
+    }
+}
+
+int getVersionCode() {
+    if (hasProperty('VERSION_CODE')) {
+        return VERSION_CODE as int
+    } else {
+        printErrorGradlePropertiesNotSet('VERSION_CODE')
+        return 0
+    }
+}
+
+String getGroupSet() {
+    if (hasProperty('GROUP')) {
+        return GROUP
+    } else {
+        printErrorGradlePropertiesNotSet('GROUP')
+        return ""
+    }
+}
+
+String getPomArtifactId() {
+    if (hasProperty('POM_ARTIFACT_ID')) {
+        return POM_ARTIFACT_ID
+    } else {
+        printErrorGradlePropertiesNotSet('POM_ARTIFACT_ID')
+        return ""
+    }
+}
+
+String getPomName() {
+    if (hasProperty('POM_NAME')) {
+        return POM_NAME
+    } else {
+        printErrorGradlePropertiesNotSet('POM_NAME')
+        return ""
+    }
+}
+
+String getPomPackaging() {
+    return hasProperty('POM_PACKAGING') ? POM_PACKAGING : "aar"
+}
+
+String getReleaseRepositoryUrl() {
+    return hasProperty('REPO_RELEASE_REPOSITORY_URL') ? REPO_RELEASE_REPOSITORY_URL : "file://${project.rootDir}/mvn-repo/release"
+}
+
+String getSnapshotRepositoryUrl() {
+    return hasProperty('REPO_SNAPSHOT_REPOSITORY_URL') ? REPO_SNAPSHOT_REPOSITORY_URL : "file://${project.rootDir}/mvn-repo/snapshots/"
+}
+
+String getRepositoryUsername() {
+    if (hasProperty('NEXUS_USERNAME')) {
+        return NEXUS_USERNAME
+    } else {
+        printErrorGradlePropertiesNotSet('NEXUS_USERNAME')
+        return ""
+    }
+}
+
+String getRepositoryPassword() {
+    if (hasProperty('NEXUS_PASSWORD')) {
+        return NEXUS_PASSWORD
+    } else {
+        printErrorGradlePropertiesNotSet('NEXUS_PASSWORD')
+        return ""
+    }
+}
+
+String getPomDeveloperId() {
+    return hasProperty('POM_DEVELOPER_ID') ? POM_DEVELOPER_ID : "default_pom_develop_id"
+}
+
+String getPomDeveloperName() {
+    return hasProperty('POM_DEVELOPER_NAME') ? POM_DEVELOPER_NAME : "default_pom_develop_name"
+}
+
+String getPomLicenceName() {
+    return hasProperty('POM_LICENCE_NAME') ? POM_LICENCE_NAME : "default_pom_licence_name"
+}
+
+String getPomLicenceUrl() {
+    return hasProperty('POM_LICENCE_URL') ? POM_LICENCE_URL : "default_pom_licence_url"
+}
+
+String getPomLicenceDist() {
+    return hasProperty('POM_LICENCE_DIST') ? POM_LICENCE_DIST : "default_pom_licence_dist"
+}
+
+String getPomDescription() {
+    return hasProperty('POM_DESCRIPTION') ? POM_DESCRIPTION : "default_pom_description"
+}
+
+signing {
+    required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.groupId = this.getGroupSet()
+                pom.artifactId = this.getPomArtifactId()
+                pom.version = this.getVersionName()
+                repository(url: this.getReleaseRepositoryUrl()) {
+                    authentication(userName: this.getRepositoryUsername(), password: this.getRepositoryPassword())
+                }
+                snapshotRepository(url: this.getSnapshotRepositoryUrl()) {
+                    authentication(userName: this.getRepositoryUsername(), password: this.getRepositoryPassword())
+                }
+                pom.project {
+                    name this.getPomName()
+                    groupId this.getGroupSet()
+                    artifactId this.getPomArtifactId()
+                    version this.getVersionName()
+                    packaging this.getPomPackaging()
+                    description this.getPomDescription()
+
+                    developers {
+                        developer {
+                            id this.getPomDeveloperId()
+                            name this.getPomDeveloperName()
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name this.getPomLicenceName()
+                            url this.getPomLicenceUrl()
+                            distribution this.getPomLicenceDist()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    task androidJavadocs(type: Javadoc) {
+        options {
+            encoding "UTF-8"
+            links "http://docs.oracle.com/javase/7/docs/api/"
+            linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
+        }
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+        classifier = 'javadoc'
+        from androidJavadocs.destinationDir
+    }
+
+    task androidSourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.sourceFiles
+    }
+
+    task androidrReleaseEclipse(type: Copy) {
+        from('build/intermediates/bundles/release/')
+        exclude 'build/intermediates/bundles/release/aapt'
+        into('build/eclipse/')
+        include('classes.jar')
+        include('res/')
+        include('jni/')
+        include('libs/')
+        include('aidl/')
+        include('assets/')
+        include('R.txt')
+        rename('classes.jar', "${project.name}-release.jar")
+    }
+
+    task androidReleaseEclipseZip(type: Zip, dependsOn: androidrReleaseEclipse) {
+        classifier = 'eclipse'
+        from "${project.buildDir}/eclipse/"
+    }
+
+    artifacts {
+        checkNexusModuleConfig()
+        archives androidSourcesJar
+        archives androidJavadocsJar
+//        archives androidReleaseEclipseZip
+        "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+    }
+
+}
+
+ext {
+    checkNexusModuleConfig = this.&checkNexusModuleConfig
+
+}

@@ -1,0 +1,6 @@
+<resources>
+    <string name="method_time_duration_time">耗时：%1$s</string>
+    <string name="method_time_start_time">调用时间：%1$s</string>
+    <string name="method_time_title">方法耗时监控</string>
+    <string name="method_time_hint">输入需要过滤的耗时时间，单位毫秒</string>
+</resources>
