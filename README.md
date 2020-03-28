@@ -104,4 +104,4 @@ android.enableD8.desugaring=false
 
 # 数据查看效果
 
-![Demo](https://wpsfile.ksyun.com/a9f4459266dae8e56b6bfdf8ba67d02ecf9845f8?response-content-disposition=attachment%3Bfilename%2A%3Dutf-8%27%27MethodTimeMonitorDemo.png&KSSAccessKeyId=AKLTVHhAfrxsSC2bGR_WE8shnA&Expires=1585411665&Signature=CMKLJDNsdIiabCKdpPPhwMa%2BYjY%3D)
+![Demo](Demo.png)
