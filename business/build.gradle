@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply from: rootProject.file("gradle/nexusUpload.gradle")
+apply plugin: 'maven'
+group='com.github.HyperionChen'
 
 android {
     compileSdkVersion 26
