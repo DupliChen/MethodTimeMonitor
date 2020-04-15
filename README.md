@@ -104,4 +104,4 @@ android.enableD8.desugaring=false
 
 # 数据查看效果
 
-![Demo](https://upload-images.jianshu.io/upload_images/13001599-95762ee3d7bf3021.png?imageMogr2/auto-orient/strip|imageView2/2/w/640/format/webp)
+![Demo](https://raw.githubusercontent.com/HyperionChen/MethodTimeMonitor/master/Demo.png)
